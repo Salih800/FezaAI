@@ -9,9 +9,14 @@ Yarışmacılar örnek arayüzü ihtiyaçlarına göre güncelleyebilir yada far
 $ conda create -n teknofest_yarisma python=3.7
 $ conda activate teknofest_yarisma
 ```
+- Repo klonlama
+```shell
+$ git clone --recurse-submodules https://github.com/Salih800/FezaAI
+```
 - Gerekli paketler yüklenir.
 ```shell
 $ pip install -r requirements.txt
+$ pip install -r yolov5/requirements.txt
 ```
 - `./config` klasorü altında bulunan `example.env` klasörü referans alınarak (kopyalanarak) `.env` isiminde bir dosya oluşturulur.
 - `.env` dosyasının içeriği teknofest tarafından verilen takım kullanıcı adı ve şifreleri ile güncellenerek kaydedilir. (Dikkat: Sonuçta oluşacak dosyanın yolu `./config/.env` şeklinde olacaktır.) 
