@@ -47,15 +47,16 @@ class ConnectionHandler:
         images_json_path = "./_images_json_list/"
         if not os.path.isdir(images_json_path):
             os.mkdir(images_json_path)
-        images_json_filename = datetime.datetime.now().strftime(images_json_path + 'all_images__%Y_%m_%d__%H_%M_%S_%f.json')
 
         response = requests.request("GET", self.url_frames, headers=headers, data=payload)
         self.frames = json.loads(response.text)
 
         if response.status_code == 200:
-            logging.info("Successful : get_frames : {} pictures".format(len(self.frames)))
+            images_json_filename = datetime.datetime.now().strftime(images_json_path + 'all_images__%Y_%m_%d__%H_%M_%S_%f.json')
             with open(images_json_filename, "w") as json_file:
                 json.dump(self.frames, json_file)
+            logging.info("Successful : get_frames : {} pictures saved in the file: {}".format(len(self.frames),
+                                                                                              images_json_filename))
         else:
             logging.info("Failed : get_frames : {}".format(response.text))
 

@@ -1,0 +1,99 @@
+{
+	"info": {
+		"_postman_id": "dbc9e428-375a-423f-ab0d-9f8deddea872",
+		"name": "Teknofest Sunucu Yarışmacı Testi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Sunucu Erişim Testi",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": null
+			},
+			"response": []
+		},
+		{
+			"name": "Yarışmacı Girişi",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "cezeri",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "Cezeri2021*",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://teknofest.cezerirobot.com/auth/",
+					"protocol": "http",
+					"host": [
+						"teknofest",
+						"cezerirobot",
+						"com"
+					],
+					"path": [
+						"auth",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Yarışma Frame'lerini Al",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": null
+			},
+			"response": []
+		},
+		{
+			"name": "Tahmin Gönder",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token  57022bc9afe62f8fb4eb52ad5323c19b4c8fdc27",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"frame\": \"http://teknofest.cezerirobot.com/frames/2565/\", \r\n    \"detected_objects\": [\r\n        {   \r\n            \"cls\": \"http://teknofest.cezerirobot.com/classes/1/\",\r\n            \"landing_status\":\"1\",\r\n            \"top_left_x\":\"12\",\r\n            \"top_left_y\":\"12\",\r\n            \"bottom_right_x\":\"12\",\r\n            \"bottom_right_y\":\"12\"} \r\n    ]\r\n}"
+				},
+				"url": {
+					"raw": "http://teknofest.cezerirobot.com/prediction/",
+					"protocol": "http",
+					"host": [
+						"teknofest",
+						"cezerirobot",
+						"com"
+					],
+					"path": [
+						"prediction",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
