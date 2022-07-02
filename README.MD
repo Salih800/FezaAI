@@ -12,6 +12,7 @@ $ conda activate teknofest_yarisma
 - Gerekli paketler yüklenir.
 ```shell
 $ pip install -r requirements.txt
+$ pip install -r yolov5/requirements.txt
 ```
 - `./config` klasorü altında bulunan `example.env` klasörü referans alınarak (kopyalanarak) `.env` isiminde bir dosya oluşturulur.
 - `.env` dosyasının içeriği teknofest tarafından verilen takım kullanıcı adı ve şifreleri ile güncellenerek kaydedilir. (Dikkat: Sonuçta oluşacak dosyanın yolu `./config/.env` şeklinde olacaktır.) 
