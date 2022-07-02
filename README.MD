@@ -9,7 +9,7 @@ Yarışmacılar örnek arayüzü ihtiyaçlarına göre güncelleyebilir yada far
 $ conda create -n teknofest_yarisma python=3.7
 $ conda activate teknofest_yarisma
 ```
--Repo klonlama
+- Repo klonlama
 ```shell
 $ git clone --recurse-submodules https://github.com/Salih800/FezaAI
 ```
