@@ -11,9 +11,7 @@ from src.detected_object import DetectedObject
 import torch
 import os
 from PIL import Image, ImageDraw, ImageFont
-
-
-
+import cv2
 
 
 class ObjectDetectionModel:
@@ -25,7 +23,7 @@ class ObjectDetectionModel:
         self.images_folder = "./_images/"
 
         # self.start_time = time.time()
-        # self.detected_pictures = 0
+        self.detected_pictures = 0
         self.main_model_name = "visdrone_model_v2.pt"
         self.main_model_size = 800
         self.main_model = torch.hub.load("./yolov5", 'custom', source='local', path="models/" + self.main_model_name)
@@ -58,10 +56,13 @@ class ObjectDetectionModel:
                                outline=(255, 0, 0), width=2, fill=(255, 0, 0))
 
                 draw.text((json_result["xmin"], json_result["ymin"] - h), label, font=font)
+
         detected_image_path = detected_images_folder[:-1] + image_path
         if not os.path.isdir(os.path.dirname(detected_image_path)):
             os.makedirs(os.path.dirname(detected_image_path))
         img.convert("RGB").save(detected_image_path)
+        cv2.imshow("FRAME", cv2.resize(cv2.imread(detected_image_path), (1280, 720)))
+        cv2.waitKey(1)
 
     @staticmethod
     def download_image(img_url, images_folder):
@@ -166,6 +167,7 @@ class ObjectDetectionModel:
         with open(detections_filename, "w") as all_json_file:
             json.dump(all_json_results, all_json_file)
 
-        # self.detected_pictures += 1
+        self.detected_pictures += 1
+        print(f"Detected Pictures: {self.detected_pictures}")
         # exit()
         return prediction
