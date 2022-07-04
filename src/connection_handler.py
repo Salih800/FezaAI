@@ -52,7 +52,8 @@ class ConnectionHandler:
         self.frames = json.loads(response.text)
 
         if response.status_code == 200:
-            images_json_filename = datetime.datetime.now().strftime(images_json_path + 'all_images__%Y_%m_%d__%H_%M_%S_%f.json')
+            images_json_filename = datetime.datetime.now().strftime(images_json_path + self.frames[0]["video_name"]
+                                                                    + '__%Y_%m_%d__%H_%M_%S_%f.json')
             with open(images_json_filename, "w") as json_file:
                 json.dump(self.frames, json_file)
             logging.info("Successful : get_frames : {} pictures saved in the file: {}".format(len(self.frames),
@@ -79,9 +80,9 @@ class ConnectionHandler:
         gönderilemeyen tahmini sunucuya tekrar göndermek üzere bir mekanizma tasarlayabilir.
         """
 
-        payloads_path = "./_payloads/"
+        payloads_path = "./_payloads/" + prediction.video_name + "/"
         if not os.path.isdir(payloads_path):
-            os.mkdir(payloads_path)
+            os.makedirs(payloads_path)
 
         payload = json.dumps(prediction.create_payload(self.base_url))
         files = []
@@ -99,8 +100,8 @@ class ConnectionHandler:
             logging.info(f"Prediction send successfully. Payload file saved: {payload_filename}")
 
         else:
-            logging.info("Prediction send failed. \n\t{}".format(response.text))
+            logging.warning("Prediction send failed. {}\n\t{}".format(response.status_code, response.text))
             response_json = json.loads(response.text)
             if "You do not have permission to perform this action." in response_json["detail"]:
-                logging.info("Limit exceeded. 80frames/min \n\t{}".format(response.text))
+                logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
         return response

@@ -1,5 +1,6 @@
 import concurrent.futures
 import logging
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -42,15 +43,25 @@ def run():
     images_folder = "./_images/"
     Path(images_folder).mkdir(parents=True, exist_ok=True)
 
+    prediction_sent = False
     # Run object detection model frame by frame.
     for frame in frames_json:
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
         #print(predictions.image_url)
         # Run detection model
-        predictions = detection_model.process(predictions,evaluation_server_url)
+        predictions = detection_model.process(predictions, evaluation_server_url)
         # Send model predictions of this frame to the evaluation server
-        result = server.send_prediction(predictions)
+        while not prediction_sent:
+            result = server.send_prediction(predictions)
+            if result.status_code == 201:
+                prediction_sent = True
+            elif result.status_code == 406:
+                prediction_sent = True
+            else:
+                print("Sleeping 10 seconds")
+                time.sleep(10)
+        prediction_sent = False
 
 
 if __name__ == '__main__':

@@ -5,3 +5,4 @@ _images_json_list
 _logs
 _payloads
 .idea
+*.pyc
