@@ -45,7 +45,8 @@ def run():
 
     prediction_sent = False
     # Run object detection model frame by frame.
-    for frame in frames_json:
+    for i, frame in enumerate(frames_json):
+        print(f"Picture Number: {i+1}/{len(frames_json)}")
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
         #print(predictions.image_url)
