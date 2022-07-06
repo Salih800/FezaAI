@@ -11,7 +11,7 @@ $ conda activate teknofest_yarisma
 ```
 - Repo klonlama
 ```shell
-$ git clone --recurse-submodules https://github.com/Salih800/FezaAI
+git clone --recurse-submodules https://github.com/Salih800/FezaAI
 ```
 - Gerekli paketler yüklenir.
 ```shell
