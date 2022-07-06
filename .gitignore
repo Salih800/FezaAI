@@ -6,4 +6,4 @@ _logs
 _payloads
 .idea
 *.pyc
-*__pycache_
+*__pycache__/
