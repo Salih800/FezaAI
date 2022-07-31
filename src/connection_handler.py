@@ -89,6 +89,17 @@ class ConnectionHandler:
             'Content-Type': 'application/json',
         }
 
+        if save_payload:
+            payloads_path = "./_payloads/" + prediction.video_name + "/" + model_name + "/"
+            if not os.path.isdir(payloads_path):
+                os.makedirs(payloads_path)
+
+            payload_filename = payloads_path + os.path.basename(prediction.image_url)[:-4] + ".json"
+
+            with open(payload_filename, "w") as detection_file:
+                detection_file.write(payload)
+            logging.info(f"Payload file saved: {payload_filename}")
+
         if upload_payload:
             response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files)
 
@@ -101,18 +112,7 @@ class ConnectionHandler:
                 if "You do not have permission to perform this action." in response_json["detail"]:
                     logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
 
-        if save_payload:
-            payloads_path = "./_payloads/" + prediction.video_name + "/" + model_name + "/"
-            if not os.path.isdir(payloads_path):
-                os.makedirs(payloads_path)
-
-            payload_filename = payloads_path + os.path.basename(prediction.image_url)[:-4] + ".json"
-
-            with open(payload_filename, "w") as detection_file:
-                detection_file.write(payload)
-            logging.info(f"Payload file saved: {payload_filename}")
-
-        return response
+            return response
 
     def upload_payloads(self, payload_folder: str):
         payload_list = glob.glob(payload_folder + "*.json")
