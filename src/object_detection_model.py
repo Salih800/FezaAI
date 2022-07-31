@@ -12,12 +12,13 @@ import torch
 import os
 from PIL import Image, ImageDraw, ImageFont
 import cv2
+from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
 
 
 class ObjectDetectionModel:
     # Base class for team models
 
-    def __init__(self, evaluation_server_url):
+    def __init__(self, evaluation_server_url, uap_uai_model=None, yaya_arac_model=None):
         logging.info('Created Object Detection Model')
         self.evaulation_server = evaluation_server_url
         self.images_folder = "./_images/"
