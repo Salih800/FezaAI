@@ -54,7 +54,7 @@ def run():
         predictions = detection_model.process(predictions, evaluation_server_url)
         # Send model predictions of this frame to the evaluation server
         while not prediction_sent:
-            result = server.send_prediction(predictions)
+            result = server.save_or_upload_prediction(predictions)
             if result.status_code == 201:
                 prediction_sent = True
             elif result.status_code == 406:

@@ -1,7 +1,9 @@
 import datetime
+import glob
 import json
 import logging
 import os.path
+import time
 
 import requests
 
@@ -63,7 +65,7 @@ class ConnectionHandler:
 
         return self.frames
 
-    def send_prediction(self, prediction):
+    def save_or_upload_prediction(self, prediction, model_name, upload_payload: bool, save_payload: bool):
         """
         Dikkat: Bir dakika içerisinde bir takım maksimum 80 frame için tahmin gönderebilecektir.
         Bu kısıt yarışma esnasında yarışmacıların gereksiz istek atarak sunucuya yük binmesini
@@ -80,28 +82,80 @@ class ConnectionHandler:
         gönderilemeyen tahmini sunucuya tekrar göndermek üzere bir mekanizma tasarlayabilir.
         """
 
-        payloads_path = "./_payloads/" + prediction.video_name + "/"
-        if not os.path.isdir(payloads_path):
-            os.makedirs(payloads_path)
-
         payload = json.dumps(prediction.create_payload(self.base_url))
         files = []
         headers = {
             'Authorization': 'Token {}'.format(self.auth_token),
             'Content-Type': 'application/json',
         }
-        response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files)
-        payload_filename = datetime.datetime.now().strftime(payloads_path + os.path.basename(prediction.image_url)[:-4]
-                                                            + '__%Y_%m_%d__%H_%M_%S_%f.json')
 
-        with open(payload_filename, "w") as detection_file:
-            detection_file.write(payload)
-        if response.status_code == 201:
-            logging.info(f"Prediction send successfully. Payload file saved: {payload_filename}")
+        if upload_payload:
+            response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files)
 
-        else:
-            logging.warning("Prediction send failed. {}\n\t{}".format(response.status_code, response.text))
-            response_json = json.loads(response.text)
-            if "You do not have permission to perform this action." in response_json["detail"]:
-                logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
+            if response.status_code == 201:
+                logging.info(f"Prediction uploaded successfully.")
+
+            else:
+                logging.warning("Prediction send failed. {}\n\t{}".format(response.status_code, response.text))
+                response_json = json.loads(response.text)
+                if "You do not have permission to perform this action." in response_json["detail"]:
+                    logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
+
+        if save_payload:
+            payloads_path = "./_payloads/" + prediction.video_name + "/" + model_name + "/"
+            if not os.path.isdir(payloads_path):
+                os.makedirs(payloads_path)
+
+            payload_filename = payloads_path + os.path.basename(prediction.image_url)[:-4] + ".json"
+
+            with open(payload_filename, "w") as detection_file:
+                detection_file.write(payload)
+            logging.info(f"Payload file saved: {payload_filename}")
+
         return response
+
+    def upload_payloads(self, payload_folder: str):
+        payload_list = glob.glob(payload_folder + "*.json")
+        total_payload_count = len(payload_list)
+        logging.info(f"{total_payload_count} Found Total Payloads in '{payload_folder}'")
+        uploaded_count = 0
+        failed_count = 0
+        already_uploaded_count = 0
+
+        for payload_file in payload_list:
+            payload = open(payload_file).read()
+            payload_uploaded = False
+            while not payload_uploaded:
+                files = []
+                headers = {
+                    'Authorization': 'Token {}'.format(self.auth_token),
+                    'Content-Type': 'application/json',
+                }
+                response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files)
+
+                if response.status_code == 201:
+                    logging.info(f"Prediction uploaded successfully.")
+                    # payload_list.remove(payload_file)
+                    uploaded_count += 1
+                    payload_uploaded = True
+
+                elif response.status_code == 406:
+                    # payload_list.remove(payload_file)
+                    already_uploaded_count += 1
+                    payload_uploaded = True
+
+                elif response.status_code == 403:
+                    logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
+                    logging.info("Waiting 5 seconds...")
+                    time.sleep(5)
+
+                else:
+                    failed_count += 1
+                    logging.warning("Prediction send failed. {}\n\t{}".format(response.status_code, response.text))
+                    response_json = json.loads(response.text)
+                    if "You do not have permission to perform this action." in response_json["detail"]:
+                        logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
+                    time.sleep(3)
+
+        logging.info(f"{uploaded_count}/{total_payload_count} Payload Uploaded")
+        logging.warning(f"{already_uploaded_count} payloads already uploaded and {failed_count} failed uploads!")
