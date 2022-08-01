@@ -3,6 +3,7 @@ import os
 import time
 from pathlib import Path
 import sys
+
 # print(os.getcwd())
 sys.path.append("./sahi")
 sys.path.append("./yolov7")
@@ -56,71 +57,74 @@ detection_model = Yolov7DetectionModel(
     image_size=model.size
 )
 
-images_path = "../images/"
-detected_images_path = "sahi/_detected_images/"
+images_path = "./images/"
+label_save_path = "./labels/"
+detected_images_path = "./_detected_images/"
 # Path(images_path).mkdir(parents=True, exist_ok=True)
 Path(detected_images_path).mkdir(parents=True, exist_ok=True)
 
 # print(detection_model.num_categories, detection_model.category_names)
 image_list = glob.glob(images_path + "*g")
 print(f"Total Pictures: {len(image_list)}")
-for i, image in enumerate(image_list[:2]+image_list[5:9]):
-    print(f"{i+1}/{len(image_list)}", image)
+for i, image in enumerate(image_list):
+    print(f"{i + 1}/{len(image_list)}", image)
     image_name = os.path.split(image)[-1][:-4]
     image_type = ".jpg"
 
     result = get_prediction(image, detection_model)
     print(f"{model.name} normal detection time: {result.durations_in_seconds}")
-
-    result.export_visuals(file_name=f"{image_name}-{model.name}-result",
+    file_name = f"{image_name}-{model.name}-result"
+    result.export_visuals(file_name=file_name,
                           export_dir=detected_images_path)
+
+    result.save_yolo_label(label_path=label_save_path + "normal/" + model.name + "/" + image_name + ".txt")
+    # exit()
 
     slice_512 = 512
     slice_256 = 256
     overlap_ratio = 0.2
 
-    sliced_result_256 = get_sliced_prediction(
-        image,
-        detection_model,
-        slice_height=slice_256,
-        slice_width=slice_256,
-        overlap_width_ratio=overlap_ratio,
-        overlap_height_ratio=overlap_ratio,
-    )
+    # sliced_result_256 = get_sliced_prediction(
+    #     image,
+    #     detection_model,
+    #     slice_height=slice_256,
+    #     slice_width=slice_256,
+    #     overlap_width_ratio=overlap_ratio,
+    #     overlap_height_ratio=overlap_ratio,
+    # )
+    #
+    # print(f"{model.name} {slice_256}x{slice_256} - {overlap_ratio} sliced detection time: {sliced_result_256.durations_in_seconds}")
+    #
+    # sliced_result_256.export_visuals(
+    #     file_name=f"{image_name}-{model.name}-sliced-{slice_256}x{slice_256}-{overlap_ratio}-result",
+    #     export_dir=detected_images_path)
 
-    print(f"{model.name} {slice_256}x{slice_256} - {overlap_ratio} sliced detection time: {sliced_result_256.durations_in_seconds}")
-
-    sliced_result_256.export_visuals(
-        file_name=f"{image_name}-{model.name}-sliced-{slice_256}x{slice_256}-{overlap_ratio}-result",
-        export_dir=detected_images_path)
-
-    sliced_result_512 = get_sliced_prediction(
-        image,
-        detection_model,
-        slice_height=slice_512,
-        slice_width=slice_512,
-        overlap_width_ratio=overlap_ratio,
-        overlap_height_ratio=overlap_ratio,
-    )
-
-    print(f"{model.name} {slice_512}x{slice_512} - {overlap_ratio} sliced detection time: {sliced_result_512.durations_in_seconds}")
-
-    sliced_result_512.export_visuals(
-        file_name=f"{image_name}-{model.name}-sliced-{slice_512}x{slice_512}-{overlap_ratio}-result",
-        export_dir=detected_images_path)
+    # sliced_result_512 = get_sliced_prediction(
+    #     image,
+    #     detection_model,
+    #     slice_height=slice_512,
+    #     slice_width=slice_512,
+    #     overlap_width_ratio=overlap_ratio,
+    #     overlap_height_ratio=overlap_ratio,
+    # )
+    #
+    # print(f"{model.name} {slice_512}x{slice_512} - {overlap_ratio} sliced detection time: {sliced_result_512.durations_in_seconds}")
+    #
+    # sliced_result_512.export_visuals(
+    #     file_name=f"{image_name}-{model.name}-sliced-{slice_512}x{slice_512}-{overlap_ratio}-result",
+    #     export_dir=detected_images_path)
 
     auto_sliced_result = get_sliced_prediction(
         image,
-        detection_model,
-        # slice_height=slice_height,
-        # slice_width=slice_width,
-        # overlap_width_ratio=overlap_ratio,
-        # overlap_height_ratio=overlap_ratio,
+        detection_model
     )
-
+    file_name = f"{image_name}-{model.name}-sliced-auto-result"
     auto_sliced_result.export_visuals(
-        file_name=f"{image_name}-{model.name}-sliced-auto-result",
+        file_name=file_name,
         export_dir=detected_images_path)
+
+    auto_sliced_result.save_yolo_label(label_path=label_save_path + "sahi-auto/"
+                                                  + model.name + "/" + image_name + ".txt")
 
     print(f"{model.name} auto-sliced detection time: {auto_sliced_result.durations_in_seconds}")
 
@@ -132,6 +136,5 @@ for i, image in enumerate(image_list[:2]+image_list[5:9]):
     # for p in result.object_prediction_list:
     #     print(f"Category Id: {p.category.id}, Category Name: {p.category.name}, Confidence: {round(p.score.value, 3)}, "
     #           f"BBOX: {p.bbox.minx, p.bbox.miny, p.bbox.maxx, p.bbox.maxy}")
-
 
 # Image.open("demo_data/prediction_visual.png").show(title="demo_data/prediction_visual.png")
