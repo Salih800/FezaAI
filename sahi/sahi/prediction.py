@@ -12,7 +12,7 @@ from sahi.annotation import ObjectAnnotation
 from sahi.utils.coco import CocoAnnotation, CocoPrediction
 from sahi.utils.cv import read_image_as_pil, visualize_object_predictions
 from sahi.utils.file import Path
-
+from src.detected_object import DetectedObject
 
 class PredictionScore:
     def __init__(self, value: float):
@@ -222,9 +222,25 @@ class PredictionResult:
             )
         return fiftyone_detection_list
 
-    def to_yolo_detections(self):
+    def to_teknofest_predictions(self) -> list[DetectedObject]:
+        detected_object_list: list[DetectedObject] = []
         for object_detection in self.object_prediction_list:
-            print(object_detection)
+            cls = object_detection.category.id
+            top_left_x = object_detection.bbox.minx
+            top_left_y = object_detection.bbox.miny
+            bottom_right_x = object_detection.bbox.maxx
+            bottom_right_y = object_detection.bbox.maxy
+            if object_detection.category.name in ["uap", "uai"]:
+                landing_status = 1
+            elif object_detection.category.name in ["uap_not", "uai_not"]:
+                landing_status = 0
+            else:
+                landing_status = -1
+            detected_object = DetectedObject(cls=cls, landing_status=landing_status, top_left_x=top_left_x, top_left_y=top_left_y,
+                           bottom_right_x=bottom_right_x, bottom_right_y=bottom_right_y)
+            detected_object_list.append(detected_object)
+        return detected_object_list
+
 
     def save_yolo_label(self, label_path):
         label_folder = os.path.split(label_path)[0]
