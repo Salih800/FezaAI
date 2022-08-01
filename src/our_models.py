@@ -31,6 +31,13 @@ class MODELS:
                                      "model_for": "yaya-arac",
                                      "gdrive_id": "1-lbNSydY98tfvXRGAI8GAoZozX4wttnb"
                                      }
+        self.yolov7_uap_uai = {"name": "yolov7-teknofest+gta5",
+                                     "path": "models/yolov7-b8-e300-i1280-teknofest+gta5.pt",
+                                     "size": 1280,
+                                     "conf": 0.5,
+                                     "model_for": "uap-uai",
+                                     "gdrive_id": "1056zTMCVlDHqBIQztfa7biA5mzNIBH_i"
+                                     }
         self.yolov7_e6e = {"name": "yolov7-e6e-default",
                                      "path": "models/yolov7-e6e-b8-e300-i960-vismix+teknofest.pt",
                                      "size": 1280,
@@ -38,7 +45,7 @@ class MODELS:
                                      "model_for": "coco"
                                      }
         self.yolov7 = {"name": "yolov7-default",
-                           "path": "models/yolov7-e6e-b8-e300-i960-vismix+teknofest.pt",
+                           "path": "models/yolov7.pt",
                            "size": 640,
                            "conf": 0.5,
                            "model_for": "coco"
