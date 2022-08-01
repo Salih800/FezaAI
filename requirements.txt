@@ -2,5 +2,6 @@
 -r yolov7/requirements.txt
 -r sahi/requirements.txt
 python-decouple
+gdown
 #requests~=2.25.1
 #pillow~=8.2.0

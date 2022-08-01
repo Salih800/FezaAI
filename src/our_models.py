@@ -28,7 +28,8 @@ class MODELS:
                                      "path": "models/yolov7-e6e-b8-e300-i960-vismix+teknofest.pt",
                                      "size": 960,
                                      "conf": 0.5,
-                                     "model_for": "yaya-arac"
+                                     "model_for": "yaya-arac",
+                                     "gdrive_id": "1-lbNSydY98tfvXRGAI8GAoZozX4wttnb"
                                      }
         self.yolov7_e6e = {"name": "yolov7-e6e-default",
                                      "path": "models/yolov7-e6e-b8-e300-i960-vismix+teknofest.pt",
@@ -70,6 +71,7 @@ class ModelInfo:
         self.size = model_info["size"]
         self.conf = model_info["conf"]
         self.model_for = model_info["model_for"]
+        self.gdrive_id = model_info["gdrive_id"]
 
 
 def get_model_info(model):

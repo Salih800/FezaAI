@@ -6,9 +6,11 @@ import sys
 # print(os.getcwd())
 sys.path.append("./sahi")
 # print(sys.path)
-# from sahi.utils.yolov5 import (
-#     download_yolov5s6_model, #download_yolov5l6_model
-# )
+from sahi.utils.yolov5 import (
+    download_yolov5s6_model, download_yolov5l6_model
+)
+
+from utils.model_download import download_model
 
 # import required functions, classes
 from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
@@ -36,6 +38,7 @@ import sys
 models = MODELS()
 # yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
 model = get_model_info(models.yolov7_e6e_yaya_arac)
+download_model(model.gdrive_id, model.path)
 
 # download_yolov5s6_model(destination_path=model.path)
 

@@ -220,3 +220,7 @@ class PredictionResult:
                 object_prediction.to_fiftyone_detection(image_height=self.image_height, image_width=self.image_width)
             )
         return fiftyone_detection_list
+
+    def to_yolo_detections(self):
+        for object_detection in self.object_prediction_list:
+            print(object_detection)
