@@ -2,6 +2,7 @@
 # Code written by Fatih C Akyon, 2020.
 
 import copy
+import os.path
 from typing import Dict, List, Optional, Union
 
 import numpy as np
@@ -224,3 +225,20 @@ class PredictionResult:
     def to_yolo_detections(self):
         for object_detection in self.object_prediction_list:
             print(object_detection)
+
+    def save_yolo_label(self, label_path):
+        label_folder = os.path.split(label_path)[0]
+        if not os.path.isdir(label_folder):
+           # shutil.rmtree(label_folder)
+            os.makedirs(label_folder)
+
+        for object_detection in self.object_prediction_list:
+            cls = object_detection.category.id
+            x = ((object_detection.bbox.minx + object_detection.bbox.maxx) / 2) / self.image_width
+            y = ((object_detection.bbox.miny + object_detection.bbox.maxy) / 2) / self.image_height
+            w = (object_detection.bbox.maxx - object_detection.bbox.minx) / self.image_width
+            h = (object_detection.bbox.maxy - object_detection.bbox.miny) / self.image_height
+            yolo_label = f"{cls} {x} {y} {w} {h}\n"
+            with open(label_path, "a") as label_file:
+                label_file.write(yolo_label)
+            # break
