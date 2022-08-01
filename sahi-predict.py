@@ -5,12 +5,14 @@ from pathlib import Path
 import sys
 # print(os.getcwd())
 sys.path.append("./sahi")
+sys.path.append("./yolov7")
+sys.path.append("./yolov5")
 # print(sys.path)
 from sahi.utils.yolov5 import (
     download_yolov5s6_model, download_yolov5l6_model
 )
 
-from utils.model_download import download_model
+from myutils.model_download import download_model
 
 # import required functions, classes
 from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
