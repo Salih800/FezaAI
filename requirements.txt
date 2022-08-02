@@ -3,5 +3,6 @@
 -r sahi/requirements.txt
 python-decouple
 gdown
+imutils
 #requests~=2.25.1
 #pillow~=8.2.0
