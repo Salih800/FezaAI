@@ -48,9 +48,7 @@ def run():
 
     # Declare logging configuration.
     # configure_logger(team_name)
-    logger = set_logger(team_name)
-    logger.debug("")
-    logger.info("System Started.")
+    set_logger(team_name)
 
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
@@ -92,15 +90,12 @@ def run():
     detection_start_time = time.time()
     for i, frame in enumerate(frames_json):
         loop_start = time.time()
-        print(f"Picture Number: {i+1}/{len(frames_json)}")
+        logging.info(f"Picture Number: {i+1}/{len(frames_json)}")
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
-        logging.info(f"FramePredictions seconds: {round(time.time() - loop_start)}")
-        time_start_detection_model = time.time()
-        #print(predictions.image_url)
+
         # Run detection model
         predictions = detection_model.process(predictions, evaluation_server_url)
-        logging.info(f"detection_model seconds: {round(time.time() - time_start_detection_model)}")
         # Send model predictions of this frame to the evaluation server
         while not prediction_sent:
             result = server.save_or_upload_prediction(predictions,
@@ -120,7 +115,7 @@ def run():
 
         logging.info(f"Loop seconds: {round(time.time() - loop_start, 2)}")
 
-    print(f"{len(frames_json)} images processed in {timedelta(seconds=time.time() - detection_start_time)}")
+    logging.info(f"{len(frames_json)} images processed in {timedelta(seconds=time.time() - detection_start_time)}")
 
 
 if __name__ == '__main__':
