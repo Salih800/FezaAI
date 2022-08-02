@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 import time
 from pathlib import Path
 import sys
@@ -40,7 +41,7 @@ import sys
 
 models = MODELS()
 # yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
-model = get_model_info(models.yolov7_e6e_yaya_arac)
+model = get_model_info(models.yolov7_uap_uai)
 download_model(model.gdrive_id, model.path)
 
 # download_yolov5s6_model(destination_path=model.path)
@@ -57,12 +58,14 @@ detection_model = Yolov7DetectionModel(
     image_size=model.size
 )
 
-images_path = "./images/"
+images_path = "./uap-uai-empty-photos/"
 label_save_path = "./labels/"
-detected_images_path = "./_detected_images/"
+detected_images_path = "./_detected_uap-uai_images/"
 # Path(images_path).mkdir(parents=True, exist_ok=True)
 Path(detected_images_path).mkdir(parents=True, exist_ok=True)
-
+if os.path.isdir(label_save_path):
+    shutil.rmtree(label_save_path)
+os.makedirs(label_save_path)
 # print(detection_model.num_categories, detection_model.category_names)
 image_list = glob.glob(images_path + "*g")
 print(f"Total Pictures: {len(image_list)}")
