@@ -15,6 +15,7 @@ from sahi.utils.yolov5 import (
 )
 
 from myutils.model_download import download_model
+# from myutils
 
 # import required functions, classes
 from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
@@ -46,17 +47,17 @@ download_model(model.gdrive_id, model.path)
 
 # download_yolov5s6_model(destination_path=model.path)
 
-# detection_model = Yolov5DetectionModel(
-#     model_path=model.sahi_path,
-#     confidence_threshold=0.3,
-#     image_size=model.size,
-# )
-
 detection_model = Yolov7DetectionModel(
     model_path=model.path,
-    confidence_threshold=model.conf,
-    image_size=model.size
+    confidence_threshold=model.confidence_threshold,
+    image_size=model.image_size,
 )
+
+# detection_model = Yolov7DetectionModel(
+#     model_path=model.path,
+#     confidence_threshold=model.conf,
+#     image_size=model.size
+# )
 
 images_path = "./uap-uai-empty-photos/"
 label_save_path = "./labels/"
@@ -130,14 +131,3 @@ for i, image in enumerate(image_list):
                                                   + model.name + "/" + image_name + ".txt")
 
     print(f"{model.name} auto-sliced detection time: {auto_sliced_result.durations_in_seconds}")
-
-    # slice_height = slice_size,
-    # slice_width = slice_size,
-    # overlap_height_ratio = overlap_ratio,
-    # overlap_width_ratio = overlap_ratio
-
-    # for p in result.object_prediction_list:
-    #     print(f"Category Id: {p.category.id}, Category Name: {p.category.name}, Confidence: {round(p.score.value, 3)}, "
-    #           f"BBOX: {p.bbox.minx, p.bbox.miny, p.bbox.maxx, p.bbox.maxy}")
-
-# Image.open("demo_data/prediction_visual.png").show(title="demo_data/prediction_visual.png")
