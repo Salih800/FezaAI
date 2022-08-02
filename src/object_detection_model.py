@@ -97,7 +97,7 @@ class ObjectDetectionModel:
         else:
             yaya_arac_result = get_prediction(image_path, self.yaya_arac_model)
 
-        if self.yaya_arac_sliced:
+        if self.uap_uai_sliced:
             uap_uai_result = get_sliced_prediction(image_path, self.uap_uai_model)
         else:
             uap_uai_result = get_prediction(image_path, self.uap_uai_model)
