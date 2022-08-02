@@ -10,6 +10,7 @@ class MODELS:
                                    "path": "models/yolov5x6-b8-e300-i1152-vismix+teknofest.pt",
                                    "size": 1152,
                                    "conf": 0.5,
+                                   "gdrive_id": "1-nrbVsCKODyhIar-QFU4yksnvWurvdNl",
                                    "model_for": "yaya-arac"
                                    }
         self.yolov5s_yaya_arac = {"name": "yolov5s-visdrone_model_v2",
@@ -19,9 +20,10 @@ class MODELS:
                                   "model_for": "yaya-arac"
                                   }
         self.yolov5s_uap_uai = {"name": "yolov5s-uap-uai-v2",
-                                "path": "models/uap_uai-v2.pt",
+                                "path": "models/yolov5s-uap-uai-v2.pt",
                                 "size": 640,
                                 "conf": 0.5,
+                                "gdrive_id": "10BoouFgKndIfnnMyNPR7nPjzSjBJM1ZI",
                                 "model_for": "uap-uai"
                                 }
         self.yolov7_e6e_yaya_arac = {"name": "yolov7-e6e+vismix+teknofest",
@@ -74,7 +76,6 @@ class ModelInfo:
     def __init__(self, model_info):
         self.name = model_info["name"]
         self.path = model_info["path"]
-        self.sahi_path = "../" + self.path
         self.size = model_info["size"]
         self.conf = model_info["conf"]
         self.model_for = model_info["model_for"]
