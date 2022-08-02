@@ -1,7 +1,7 @@
 import concurrent.futures
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from decouple import config
@@ -9,6 +9,11 @@ from decouple import config
 from src.connection_handler import ConnectionHandler
 from src.frame_predictions import FramePredictions
 from src.object_detection_model import ObjectDetectionModel
+from src.our_models import get_model_info, MODELS
+
+from myutils.model_download import download_model
+
+from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
 
 
 def configure_logger(team_name):
@@ -31,7 +36,29 @@ def run():
     configure_logger(team_name)
 
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
-    detection_model = ObjectDetectionModel(evaluation_server_url)
+    models = MODELS()
+    yaya_arac_model = get_model_info(models.yolov5x6_yaya_arac)
+    uap_uai_model = get_model_info(models.yolov5s_uap_uai)
+    download_model(yaya_arac_model.gdrive_id, yaya_arac_model.path)
+    download_model(uap_uai_model.gdrive_id, uap_uai_model.path)
+
+    yaya_arac_detection_model = Yolov5DetectionModel(
+        model_path=yaya_arac_model.path,
+        confidence_threshold=yaya_arac_model.conf,
+        image_size=yaya_arac_model.size,
+    )
+
+    uap_uai_detection_model = Yolov5DetectionModel(
+        model_path=uap_uai_model.path,
+        confidence_threshold=uap_uai_model.conf,
+        image_size=uap_uai_model.size,
+    )
+
+    detection_model = ObjectDetectionModel(evaluation_server_url,
+                                           yaya_arac_model=yaya_arac_detection_model,
+                                           yaya_arac_sliced=False,
+                                           uap_uai_model=uap_uai_detection_model,
+                                           uap_uai_sliced=False)
 
     # Connect to the evaluation server.
     server = ConnectionHandler(evaluation_server_url, username=team_name, password=password)
@@ -45,24 +72,38 @@ def run():
 
     prediction_sent = False
     # Run object detection model frame by frame.
+    detection_start_time = time.time()
     for i, frame in enumerate(frames_json):
+        loop_start = time.time()
         print(f"Picture Number: {i+1}/{len(frames_json)}")
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
+        logging.info(f"FramePredictions seconds: {round(time.time() - loop_start)}")
+        time_start_detection_model = time.time()
         #print(predictions.image_url)
         # Run detection model
         predictions = detection_model.process(predictions, evaluation_server_url)
+        logging.info(f"detection_model seconds: {round(time.time() - time_start_detection_model)}")
         # Send model predictions of this frame to the evaluation server
         while not prediction_sent:
-            result = server.save_or_upload_prediction(predictions, save_payload=True, upload_payload=False)
-            if result.status_code == 201:
-                prediction_sent = True
-            elif result.status_code == 406:
-                prediction_sent = True
+            result = server.save_or_upload_prediction(predictions,
+                                                      model_name=yaya_arac_model.name + "_" + uap_uai_model.name,
+                                                      save_payload=True, upload_payload=False)
+            if result:
+                if result.status_code == 201:
+                    prediction_sent = True
+                elif result.status_code == 406:
+                    prediction_sent = True
+                else:
+                    print("Sleeping 10 seconds")
+                    time.sleep(10)
             else:
-                print("Sleeping 10 seconds")
-                time.sleep(10)
+                prediction_sent = True
         prediction_sent = False
+
+        logging.info(f"Loop seconds: {round(time.time() - loop_start, 2)}")
+
+    print(f"{len(frames_json)} images processed in {timedelta(seconds=time.time() - detection_start_time)}")
 
 
 if __name__ == '__main__':
