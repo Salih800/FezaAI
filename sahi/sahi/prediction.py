@@ -14,6 +14,7 @@ from sahi.utils.cv import read_image_as_pil, visualize_object_predictions
 from sahi.utils.file import Path
 from src.detected_object import DetectedObject
 
+
 class PredictionScore:
     def __init__(self, value: float):
         """
@@ -42,14 +43,14 @@ class ObjectPrediction(ObjectAnnotation):
     """
 
     def __init__(
-        self,
-        bbox: Optional[List[int]] = None,
-        category_id: Optional[int] = None,
-        category_name: Optional[str] = None,
-        bool_mask: Optional[np.ndarray] = None,
-        score: Optional[float] = 0,
-        shift_amount: Optional[List[int]] = [0, 0],
-        full_shape: Optional[List[int]] = None,
+            self,
+            bbox: Optional[List[int]] = None,
+            category_id: Optional[int] = None,
+            category_name: Optional[str] = None,
+            bool_mask: Optional[np.ndarray] = None,
+            score: Optional[float] = 0,
+            shift_amount: Optional[List[int]] = [0, 0],
+            full_shape: Optional[List[int]] = None,
     ):
         """
         Creates ObjectPrediction from bbox, score, category_id, category_name, bool_mask.
@@ -155,10 +156,10 @@ class ObjectPrediction(ObjectAnnotation):
 
 class PredictionResult:
     def __init__(
-        self,
-        object_prediction_list: List[ObjectPrediction],
-        image: Union[Image.Image, str, np.ndarray],
-        durations_in_seconds: Optional[Dict] = None,
+            self,
+            object_prediction_list: List[ObjectPrediction],
+            image: Union[Image.Image, str, np.ndarray],
+            durations_in_seconds: Optional[Dict] = None,
     ):
         self.image: Image.Image = read_image_as_pil(image)
         self.image_width, self.image_height = self.image.size
@@ -166,7 +167,7 @@ class PredictionResult:
         self.durations_in_seconds = durations_in_seconds
 
     def export_visuals(
-        self, export_dir: str, text_size: float = None, rect_th: int = None, file_name: str = "prediction_visual"
+            self, export_dir: str, text_size: float = None, rect_th: int = None, file_name: str = "prediction_visual"
     ):
         """
 
@@ -225,27 +226,39 @@ class PredictionResult:
     def to_teknofest_predictions(self) -> list[DetectedObject]:
         detected_object_list: list[DetectedObject] = []
         for object_detection in self.object_prediction_list:
-            cls = object_detection.category.id
+            if object_detection.category.name == "vehicle" or object_detection.category.name == "arac":
+                cls = 0
+            elif object_detection.category.name == "yaya" or object_detection.category.name == "pedestrian":
+                cls = 1
+            elif object_detection.category.name == "uap" or object_detection.category.name == "uap_not":
+                cls = 2
+            elif object_detection.category.name == "uai" or object_detection.category.name == "uai_not":
+                cls = 3
+            else:
+                cls = None
+
+            # cls = object_detection.category.id
             top_left_x = object_detection.bbox.minx
             top_left_y = object_detection.bbox.miny
             bottom_right_x = object_detection.bbox.maxx
             bottom_right_y = object_detection.bbox.maxy
+
             if object_detection.category.name in ["uap", "uai"]:
                 landing_status = 1
             elif object_detection.category.name in ["uap_not", "uai_not"]:
                 landing_status = 0
             else:
                 landing_status = -1
-            detected_object = DetectedObject(cls=cls, landing_status=landing_status, top_left_x=top_left_x, top_left_y=top_left_y,
-                           bottom_right_x=bottom_right_x, bottom_right_y=bottom_right_y)
+            detected_object = DetectedObject(cls=cls, landing_status=landing_status,
+                                             top_left_x=top_left_x, top_left_y=top_left_y,
+                                             bottom_right_x=bottom_right_x, bottom_right_y=bottom_right_y)
             detected_object_list.append(detected_object)
         return detected_object_list
-
 
     def save_yolo_label(self, label_path):
         label_folder = os.path.split(label_path)[0]
         if not os.path.isdir(label_folder):
-           # shutil.rmtree(label_folder)
+            # shutil.rmtree(label_folder)
             os.makedirs(label_folder)
 
         for object_detection in self.object_prediction_list:
@@ -258,3 +271,15 @@ class PredictionResult:
             with open(label_path, "a") as label_file:
                 label_file.write(yolo_label)
             # break
+
+    # def to_json_list(self):
+    #     confidence = object_detection.
+    #     cls = classes[json_result["name"]]
+    #     if cls in ["uap", "uai"]:
+    #         landing_status = landing_statuses["Inilebilir"]
+    #     else:
+    #         landing_status = landing_statuses["Inis Alani Degil"]
+    #     top_left_x = json_result["xmin"]
+    #     top_left_y = json_result["ymin"]
+    #     bottom_right_x = json_result["xmax"]
+    #     bottom_right_y = json_result["ymax"]
