@@ -16,6 +16,20 @@ from myutils.model_download import download_model
 from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
 
 
+def set_logger(team_name):
+    log_folder = "./_logs/"
+    Path(log_folder).mkdir(parents=True, exist_ok=True)
+    log_filename = datetime.now().strftime(log_folder + team_name + '_%Y_%m_%d__%H_%M_%S_%f.log')
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(log_filename)
+    fmt = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    handler.setFormatter(fmt)
+    logger.addHandler(handler)
+    return logger
+
+
 def configure_logger(team_name):
     log_folder = "./_logs/"
     Path(log_folder).mkdir(parents=True, exist_ok=True)
@@ -33,7 +47,10 @@ def run():
     evaluation_server_url = config("EVALUATION_SERVER_URL")
 
     # Declare logging configuration.
-    configure_logger(team_name)
+    # configure_logger(team_name)
+    logger = set_logger(team_name)
+    logger.debug("")
+    logger.info("System Started.")
 
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
@@ -88,7 +105,7 @@ def run():
         while not prediction_sent:
             result = server.save_or_upload_prediction(predictions,
                                                       model_name=yaya_arac_model.name + "_" + uap_uai_model.name,
-                                                      save_payload=True, upload_payload=False)
+                                                      save_payload=True, upload_payload=True)
             if result:
                 if result.status_code == 201:
                     prediction_sent = True
