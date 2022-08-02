@@ -11,31 +11,16 @@ from src.frame_predictions import FramePredictions
 from src.object_detection_model import ObjectDetectionModel
 from src.our_models import get_model_info, MODELS
 
+import sys
+
+sys.path.append("./sahi/")
+sys.path.append("./yolov7")
+sys.path.append("./yolov5")
+
 from myutils.model_download import download_model
+from myutils.logger_setter import set_logger
 
 from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
-
-
-def set_logger(team_name):
-    log_folder = "./_logs/"
-    Path(log_folder).mkdir(parents=True, exist_ok=True)
-    log_filename = datetime.now().strftime(log_folder + team_name + '_%Y_%m_%d__%H_%M_%S_%f.log')
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(log_filename)
-    fmt = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(fmt)
-    logger.addHandler(handler)
-    return logger
-
-
-def configure_logger(team_name):
-    log_folder = "./_logs/"
-    Path(log_folder).mkdir(parents=True, exist_ok=True)
-    log_filename = datetime.now().strftime(log_folder + team_name + '_%Y_%m_%d__%H_%M_%S_%f.log')
-    logging.basicConfig(filename=log_filename, level=logging.INFO,
-                        format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def run():
@@ -52,28 +37,48 @@ def run():
 
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
+
     yaya_arac_model = get_model_info(models.yolov5x6_yaya_arac)
     uap_uai_model = get_model_info(models.yolov5s_uap_uai)
+
     download_model(yaya_arac_model.gdrive_id, yaya_arac_model.path)
     download_model(uap_uai_model.gdrive_id, uap_uai_model.path)
 
+    # YOLOV5
     yaya_arac_detection_model = Yolov5DetectionModel(
         model_path=yaya_arac_model.path,
-        confidence_threshold=yaya_arac_model.conf,
-        image_size=yaya_arac_model.size,
+        confidence_threshold=yaya_arac_model.confidence_threshold,
+        image_size=yaya_arac_model.image_size,
+        model_name=yaya_arac_model.name
     )
 
     uap_uai_detection_model = Yolov5DetectionModel(
         model_path=uap_uai_model.path,
-        confidence_threshold=uap_uai_model.conf,
-        image_size=uap_uai_model.size,
+        confidence_threshold=uap_uai_model.confidence_threshold,
+        image_size=uap_uai_model.image_size,
+        model_name=uap_uai_model.name
     )
+
+    # YOLOV7
+    # yaya_arac_detection_model = Yolov7DetectionModel(
+    #     model_path=yaya_arac_model.path,
+    #     confidence_threshold=yaya_arac_model.confidence_threshold,
+    #     image_size=yaya_arac_model.image_size,
+    #     model_name=yaya_arac_model.name
+    # )
+    #
+    # uap_uai_detection_model = Yolov7DetectionModel(
+    #     model_path=uap_uai_model.path,
+    #     confidence_threshold=uap_uai_model.confidence_threshold,
+    #     image_size=uap_uai_model.image_size,
+    #     model_name=uap_uai_model.name
+    # )
 
     detection_model = ObjectDetectionModel(evaluation_server_url,
                                            yaya_arac_model=yaya_arac_detection_model,
-                                           yaya_arac_sliced=False,
+                                           yaya_arac_sliced=True,
                                            uap_uai_model=uap_uai_detection_model,
-                                           uap_uai_sliced=False)
+                                           uap_uai_sliced=True)
 
     # Connect to the evaluation server.
     server = ConnectionHandler(evaluation_server_url, username=team_name, password=password)
@@ -90,7 +95,7 @@ def run():
     detection_start_time = time.time()
     for i, frame in enumerate(frames_json):
         loop_start = time.time()
-        logging.info(f"Picture Number: {i+1}/{len(frames_json)}")
+        logging.info(f"Picture Number: {i + 1}/{len(frames_json)}")
         # Create a prediction object to store frame info and detections
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
 
