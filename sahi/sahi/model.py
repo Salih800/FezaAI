@@ -30,6 +30,7 @@ class DetectionModel:
         category_remapping: Optional[Dict] = None,
         load_at_init: bool = True,
         image_size: int = None,
+        model_name: str = None,
     ):
         """
         Init object detection/instance segmentation model.
@@ -64,6 +65,8 @@ class DetectionModel:
         self.image_size = image_size
         self._original_predictions = None
         self._object_prediction_list_per_image = None
+
+        self.model_name = model_name
 
         # automatically set device if its None
         if not (self.device):
@@ -377,7 +380,7 @@ class Yolov5DetectionModel(DetectionModel):
         import torch
 
         try:
-            model = torch.hub.load("yolov5", 'custom', source='local', path=self.model_path)
+            model = torch.hub.load("yolov5", 'custom', source='local', path=self.model_path) #, verbose=False
             self.set_model(model)
         except Exception as e:
             raise TypeError("model_path is not a valid yolov5 model path: ", e)
