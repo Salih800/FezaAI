@@ -6,12 +6,12 @@ Yarışmacılar örnek arayüzü ihtiyaçlarına göre güncelleyebilir yada far
 # Kurulum
 - Sistem için bir sanal ortam oluşturulur. (Anaconda'nın kurulu olduğu varsayılmaktadır.)
 ```shell
-conda create -n teknofest_yarisma python=3.7
+conda create -n FezaAI python -y
 conda activate teknofest_yarisma
 ```
 - Repo klonlama
 ```shell
-git clone --recurse-submodules https://github.com/Salih800/FezaAI
+git clone https://github.com/Salih800/FezaAI
 ```
 - Gerekli paketler yüklenir.
 ```shell
