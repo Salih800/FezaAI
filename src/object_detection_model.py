@@ -5,65 +5,37 @@ import time
 
 import requests
 
+from src.our_models import ModelInfo
 from src.constants import classes, landing_statuses
 from src.detected_object import DetectedObject
-
+import imutils
 import torch
 import os
 from PIL import Image, ImageDraw, ImageFont
 import cv2
-from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
+from sahi.model import DetectionModel
+from sahi.predict import get_prediction, get_sliced_prediction
+from sahi.prediction import PredictionResult
 
 
 class ObjectDetectionModel:
     # Base class for team models
 
-    def __init__(self, evaluation_server_url, uap_uai_model=None, yaya_arac_model=None):
+    def __init__(self, evaluation_server_url,
+                 uap_uai_model: DetectionModel = None, uap_uai_sliced: bool = False,
+                 yaya_arac_model: DetectionModel = None, yaya_arac_sliced: bool = False,
+                 view_image: bool = True):
         logging.info('Created Object Detection Model')
         self.evaulation_server = evaluation_server_url
         self.images_folder = "./_images/"
 
-        # self.start_time = time.time()
-        self.detected_pictures = 0
-        self.main_model_name = "visdrone_model_v2.pt"
-        self.main_model_size = 800
-        self.main_model = torch.hub.load("./yolov5", 'custom', source='local', path="models/" + self.main_model_name)
-        self.shape_model_name = "uap_uai-v2.pt"
-        self.shape_model_size = 640
-        self.shape_model = torch.hub.load("./yolov5", 'custom', source='local', path="models/" + self.shape_model_name)
-        # Modelinizi bu kısımda init edebilirsiniz.
-        # self.model = get_keras_model() # Örnektir!
+        self.yaya_arac_model = yaya_arac_model
+        self.uap_uai_model = uap_uai_model
 
-    def draw_bounding_boxes(self, image_path, json_result_list):
-        detected_images_folder = "./_detected_images/"
-        if not os.path.isdir(detected_images_folder):
-            os.mkdir(detected_images_folder)
+        self.uap_uai_sliced = uap_uai_sliced
+        self.yaya_arac_sliced = yaya_arac_sliced
 
-        font = ImageFont.truetype(r'arial.ttf', 20)
-        img = Image.open(self.images_folder[:-1] + image_path).convert("RGBA")
-        img_shape = img.size
-        draw = ImageDraw.Draw(img)
-        for json_result in json_result_list:
-            if json_result["confidence"] >= 0.5:
-                label = f"{json_result['name']} {round(json_result['confidence'], 2)}"
-                w, h = font.getsize(label)
-                draw.rectangle((json_result["xmin"], json_result["ymin"],
-                                min(img_shape[0] - 1, json_result["xmax"]),
-                                min(img_shape[1] - 1, json_result["ymax"])),
-                               outline=(255, 0, 0), width=2)
-
-                draw.rectangle((json_result["xmin"], json_result["ymin"],
-                                json_result["xmin"] + w, json_result["ymin"] - h),
-                               outline=(255, 0, 0), width=2, fill=(255, 0, 0))
-
-                draw.text((json_result["xmin"], json_result["ymin"] - h), label, font=font)
-
-        detected_image_path = detected_images_folder[:-1] + image_path
-        if not os.path.isdir(os.path.dirname(detected_image_path)):
-            os.makedirs(os.path.dirname(detected_image_path))
-        img.convert("RGB").save(detected_image_path)
-        cv2.imshow("FRAME", cv2.resize(cv2.imread(detected_image_path), (1280, 720)))
-        cv2.waitKey(1)
+        self.view_image = view_image
 
     @staticmethod
     def download_image(img_url, images_folder):
@@ -84,8 +56,10 @@ class ObjectDetectionModel:
     def process(self, prediction, evaluation_server_url):
         # Yarışmacılar resim indirme, pre ve post process vb işlemlerini burada gerçekleştirebilir.
         # Download image (Example)
+        time_start = time.time()
         self.download_image(evaluation_server_url + "media" + prediction.image_url, "./_images"
                             + os.path.dirname(prediction.image_url) + "/")
+        logging.info(f"Download seconds: {round(time.time() - time_start, 2)}")
         # Örnek: Burada OpenCV gibi bir tool ile preprocessing işlemi yapılabilir. (Tercihe Bağlı)
         # ...
         # Nesne tespiti modelinin bulunduğu fonksiyonun (self.detect() ) çağırılması burada olmalıdır.
@@ -97,78 +71,61 @@ class ObjectDetectionModel:
         detection_results_path = "./_detection_results/" + prediction.video_name + "/"
         if not os.path.isdir(detection_results_path):
             os.makedirs(detection_results_path)
-        # if self.detected_pictures >= 79:
-        #     logging.warning("You have sent 79 pictures! Waiting...")
-        #     while time.time() - self.start_time <= 60:
-        #         time.sleep(1)
-        #     self.start_time = time.time()
-        #     self.detected_pictures = 0
-
-        # Modelinizle bu fonksiyon içerisinde tahmin yapınız.
-        # results = self.model.evaluate(...) # Örnektir.
 
         image_path = self.images_folder[:-1] + prediction.image_url
+        save_image_name = os.path.basename(prediction.image_url)[:-4]
+        # time_start = time.time()
+        if self.yaya_arac_sliced:
+            yaya_arac_result = get_sliced_prediction(image_path, self.yaya_arac_model)
+        else:
+            yaya_arac_result = get_prediction(image_path, self.yaya_arac_model)
 
-        main_results = self.main_model(image_path, self.main_model_size)
-        shape_results = self.shape_model(image_path, self.shape_model_size)
+        # yaya_arac_result.export_visuals(export_dir="extracted_results/", file_name=save_image_name + "_result")
+        # logging.info(f"yaya-arac result seconds: {round(time.time() - time_start, 2)}")
+        # time_start = time.time()
+        # uap_uai_result = get_prediction(image_path, self.uap_uai_model)
+        if self.yaya_arac_sliced:
+            uap_uai_result = get_sliced_prediction(image_path, self.uap_uai_model)
+        else:
+            uap_uai_result = get_prediction(image_path, self.uap_uai_model)
+        # logging.info(f"uap-uai result seconds: {round(time.time() - time_start, 2)}")
 
-        all_json_results = []
+        prediction.detected_objects = yaya_arac_result.to_teknofest_predictions() + uap_uai_result.to_teknofest_predictions()
 
-        main_json_results = json.loads(main_results.pandas().xyxy[0].to_json(orient="records"))
+        all_detections = PredictionResult(
+            object_prediction_list=yaya_arac_result.object_prediction_list + uap_uai_result.object_prediction_list,
+            image=yaya_arac_result.image,
+        )
 
-        for json_result in main_json_results:
-            all_json_results.append(json_result)
-            confidence = json_result["confidence"]
-            if confidence >= 0.5:
-                cls = classes[json_result["name"]]
-                landing_status = landing_statuses["Inis Alani Degil"]
-                top_left_x = json_result["xmin"]
-                top_left_y = json_result["ymin"]
-                bottom_right_x = json_result["xmax"]
-                bottom_right_y = json_result["ymax"]
-
-                d_obj = DetectedObject(cls,
-                                       landing_status,
-                                       top_left_x,
-                                       top_left_y,
-                                       bottom_right_x,
-                                       bottom_right_y)
-                prediction.add_detected_object(d_obj)
-
-        shape_json_results = json.loads(shape_results.pandas().xyxy[0].to_json(orient="records"))
-
-        for json_result in shape_json_results:
-            all_json_results.append(json_result)
-            confidence = json_result["confidence"]
-            if confidence >= 0.5:
-                cls = classes[json_result["name"]]
-                if cls in ["uap", "uai"]:
-                    landing_status = landing_statuses["Inilebilir"]
-                else:
-                    landing_status = landing_statuses["Inis Alani Degil"]
-                top_left_x = json_result["xmin"]
-                top_left_y = json_result["ymin"]
-                bottom_right_x = json_result["xmax"]
-                bottom_right_y = json_result["ymax"]
-
-                d_obj = DetectedObject(cls,
-                                       landing_status,
-                                       top_left_x,
-                                       top_left_y,
-                                       bottom_right_x,
-                                       bottom_right_y)
-                prediction.add_detected_object(d_obj)
-
-        self.draw_bounding_boxes(prediction.image_url, all_json_results)
+        all_detections.export_visuals(export_dir="extracted_results/", file_name=save_image_name + "_result")
+        if self.view_image:
+            cv2.imshow("img", imutils.resize(cv2.imread("extracted_results/" + save_image_name + "_result.png"), width=1280))
+            cv2.waitKey(1)
 
         detections_filename = datetime.datetime.now().strftime(detection_results_path +
                                                                os.path.basename(prediction.image_url)[:-4]
-                                                               + '__%Y_%m_%d__%H_%M_%S_%f.json')
+                                                               + '__%Y_%m_%d__%H_%M_%S_%f.txt')
 
-        with open(detections_filename, "w") as all_json_file:
-            json.dump(all_json_results, all_json_file)
+        yaya_arac_result.save_yolo_label(detections_filename)
+        uap_uai_result.save_yolo_label(detections_filename)
+        # with open(detections_filename, "w") as all_json_file:
+        #     json.dump(all_json_results, all_json_file)
+        arac, yaya, uap, uap_not, uai, uai_not = 0, 0, 0, 0, 0, 0
+        for detection in prediction.detected_objects:
+            if detection.cls == 0:
+                arac += 1
+            elif detection.cls == 1:
+                yaya += 1
+            elif detection.cls == 2:
+                if detection.landing_status == 1:
+                    uap += 1
+                else:
+                    uap_not += 1
+            elif detection.cls == 3:
+                if detection.landing_status == 1:
+                    uai += 1
+                else:
+                    uai_not += 1
+        print(f"Detected classes: {yaya} yaya, {arac} arac, {uap} uap, {uap_not} uap_not, {uai} uai, {uai_not} uai_not")
 
-        self.detected_pictures += 1
-        print(f"Detected Pictures: {self.detected_pictures}")
-        # exit()
         return prediction
