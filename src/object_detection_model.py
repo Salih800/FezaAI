@@ -91,9 +91,14 @@ class ObjectDetectionModel:
         # logging.info(f"uap-uai result seconds: {round(time.time() - time_start, 2)}")
 
         prediction.detected_objects = yaya_arac_result.to_teknofest_predictions() + uap_uai_result.to_teknofest_predictions()
+        all_dedections = [] ############################
+        for detection in yaya_arac_result.object_prediction_list + uap_uai_result.object_prediction_list:
+            if detection.category.name.startswith("u"):
+                detection.category.id += 2
+            all_dedections.append(detection)
 
         all_detections = PredictionResult(
-            object_prediction_list=yaya_arac_result.object_prediction_list + uap_uai_result.object_prediction_list,
+            object_prediction_list=all_dedections,
             image=yaya_arac_result.image,
         )
 
@@ -126,6 +131,7 @@ class ObjectDetectionModel:
                     uai += 1
                 else:
                     uai_not += 1
-        print(f"Detected classes: {yaya} yaya, {arac} arac, {uap} uap, {uap_not} uap_not, {uai} uai, {uai_not} uai_not")
+        logging.info(f"Detected classes: {yaya} yaya, {arac} arac, "
+                     f"{uap} uap, {uap_not} uap_not, {uai} uai, {uai_not} uai_not")
 
         return prediction
