@@ -13,9 +13,9 @@ from src.our_models import get_model_info, MODELS
 
 import sys
 
-sys.path.append("./sahi/")
-sys.path.append("./yolov7")
-sys.path.append("./yolov5")
+# sys.path.append("./sahi/")
+# sys.path.append("./yolov7")
+# sys.path.append("./yolov5")
 
 from myutils.model_download import download_model
 from myutils.logger_setter import set_logger
@@ -38,19 +38,14 @@ def run():
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
 
-    yaya_arac_model = get_model_info(models.yolov5x6_yaya_arac)
-    uap_uai_model = get_model_info(models.yolov5s_uap_uai)
+    yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
+    uap_uai_model = get_model_info(models.yolov5s6_uap_uai)
 
     download_model(yaya_arac_model.gdrive_id, yaya_arac_model.path)
     download_model(uap_uai_model.gdrive_id, uap_uai_model.path)
 
     # YOLOV5
-    yaya_arac_detection_model = Yolov5DetectionModel(
-        model_path=yaya_arac_model.path,
-        confidence_threshold=yaya_arac_model.confidence_threshold,
-        image_size=yaya_arac_model.image_size,
-        model_name=yaya_arac_model.name
-    )
+
 
     uap_uai_detection_model = Yolov5DetectionModel(
         model_path=uap_uai_model.path,
@@ -60,6 +55,14 @@ def run():
     )
 
     # YOLOV7
+
+    yaya_arac_detection_model = Yolov7DetectionModel(
+        model_path=yaya_arac_model.path,
+        confidence_threshold=yaya_arac_model.confidence_threshold,
+        image_size=yaya_arac_model.image_size,
+        model_name=yaya_arac_model.name
+    )
+
     # yaya_arac_detection_model = Yolov7DetectionModel(
     #     model_path=yaya_arac_model.path,
     #     confidence_threshold=yaya_arac_model.confidence_threshold,
