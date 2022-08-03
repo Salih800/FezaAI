@@ -1,5 +1,3 @@
-import time
-
 from src.connection_handler import ConnectionHandler
 
 from myutils.logger_setter import set_logger
