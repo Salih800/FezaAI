@@ -60,6 +60,10 @@ def run():
         which_yolo=uap_uai_model.which_yolo
     )
 
+    logging.info(f"Model infos: \n\t"
+                 f"{yaya_arac_detection_model}\n\t"
+                 f"{uap_uai_detection_model}\n")
+
     using_models = yaya_arac_detection_model.model_name + "_" + uap_uai_detection_model.model_name
 
     detection_model = ObjectDetectionModel(connection_info.evaluation_server_url,
