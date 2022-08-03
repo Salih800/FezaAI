@@ -678,6 +678,11 @@ class YoloDetectionModel(DetectionModel):
         except Exception as e:
             raise TypeError("model_path is not a valid yolov5 model path: ", e)
 
+    def __str__(self):
+        model_info = {"model-type": self.which_yolo, "model-name": self.model_name,
+                      "model-size": self.image_size, "confidence_threshold": self.confidence_threshold}
+        return str(model_info)
+
     def set_model(self, model: Any):
         """
         Sets the underlying YOLOv5 model.
