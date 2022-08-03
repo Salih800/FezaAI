@@ -33,8 +33,8 @@ def run():
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
 
-    yaya_arac_model = get_model_info(models.yolov5x6_yaya_arac)
-    uap_uai_model = get_model_info(models.yolov5s6_uap_uai)
+    yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
+    uap_uai_model = get_model_info(models.yolov7_uap_uai)
 
     download_model(yaya_arac_model.gdrive_id, yaya_arac_model.path)
     download_model(uap_uai_model.gdrive_id, uap_uai_model.path)
