@@ -1,7 +1,7 @@
 import concurrent.futures
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
@@ -11,8 +11,7 @@ from src.frame_predictions import FramePredictions
 from src.object_detection_model import ObjectDetectionModel
 from src.our_models import get_model_info, MODELS
 
-import sys
-
+# import sys
 # sys.path.append("./sahi/")
 # sys.path.append("./yolov7")
 # sys.path.append("./yolov5")
@@ -38,7 +37,7 @@ def run():
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
 
-    yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
+    yaya_arac_model = get_model_info(models.yolov5x6_yaya_arac)
     uap_uai_model = get_model_info(models.yolov5s6_uap_uai)
 
     download_model(yaya_arac_model.gdrive_id, yaya_arac_model.path)
@@ -46,6 +45,12 @@ def run():
 
     # YOLOV5
 
+    yaya_arac_detection_model = Yolov5DetectionModel(
+        model_path=yaya_arac_model.path,
+        confidence_threshold=yaya_arac_model.confidence_threshold,
+        image_size=yaya_arac_model.image_size,
+        model_name=yaya_arac_model.name
+    )
 
     uap_uai_detection_model = Yolov5DetectionModel(
         model_path=uap_uai_model.path,
@@ -54,34 +59,13 @@ def run():
         model_name=uap_uai_model.name
     )
 
-    # YOLOV7
-
-    yaya_arac_detection_model = Yolov7DetectionModel(
-        model_path=yaya_arac_model.path,
-        confidence_threshold=yaya_arac_model.confidence_threshold,
-        image_size=yaya_arac_model.image_size,
-        model_name=yaya_arac_model.name
-    )
-
-    # yaya_arac_detection_model = Yolov7DetectionModel(
-    #     model_path=yaya_arac_model.path,
-    #     confidence_threshold=yaya_arac_model.confidence_threshold,
-    #     image_size=yaya_arac_model.image_size,
-    #     model_name=yaya_arac_model.name
-    # )
-    #
-    # uap_uai_detection_model = Yolov7DetectionModel(
-    #     model_path=uap_uai_model.path,
-    #     confidence_threshold=uap_uai_model.confidence_threshold,
-    #     image_size=uap_uai_model.image_size,
-    #     model_name=uap_uai_model.name
-    # )
+    using_models = yaya_arac_detection_model.model_name + "_" + uap_uai_detection_model.model_name
 
     detection_model = ObjectDetectionModel(evaluation_server_url,
                                            yaya_arac_model=yaya_arac_detection_model,
                                            yaya_arac_sliced=True,
                                            uap_uai_model=uap_uai_detection_model,
-                                           uap_uai_sliced=True)
+                                           uap_uai_sliced=False)
 
     # Connect to the evaluation server.
     server = ConnectionHandler(evaluation_server_url, username=team_name, password=password)
@@ -107,7 +91,7 @@ def run():
         # Send model predictions of this frame to the evaluation server
         while not prediction_sent:
             result = server.save_or_upload_prediction(predictions,
-                                                      model_name=yaya_arac_model.name + "_" + uap_uai_model.name,
+                                                      model_name=using_models,
                                                       save_payload=True, upload_payload=True)
             if result:
                 if result.status_code == 201:
