@@ -30,7 +30,7 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def set_logger(team_name):
+def set_logger(team_name, add_file_handler=True, add_stream_handler=True):
     log_folder = "./_logs/"
     Path(log_folder).mkdir(parents=True, exist_ok=True)
     log_filename = datetime.now().strftime(log_folder + team_name + '_%Y_%m_%d__%H_%M_%S_%f.log')
@@ -39,17 +39,18 @@ def set_logger(team_name):
     logger.setLevel(logging.INFO)
 
     fmt = '%(asctime)s - %(levelname)s - %(message)s'
+    if add_file_handler:
+        file_handler = logging.FileHandler(log_filename)
+        file_handler.setFormatter(logging.Formatter(fmt))
+        logger.addHandler(file_handler)
 
-    file_handler = logging.FileHandler(log_filename)
-    file_handler.setFormatter(logging.Formatter(fmt))
+    if add_stream_handler:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        stream_handler.setFormatter(CustomFormatter(fmt))
+        logger.addHandler(stream_handler)
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.INFO)
-    stream_handler.setFormatter(CustomFormatter(fmt))
-
-    logger.addHandler(stream_handler)
-    logger.addHandler(file_handler)
-    return logger
+    # return logger
 
 
 def configure_logger(team_name):
