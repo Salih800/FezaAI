@@ -101,6 +101,7 @@ class ConnectionHandler:
             logging.info(f"Payload file saved: {payload_filename}")
 
         if upload_payload:
+            payload_upload_time = time.time()
             response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files)
 
             if response.status_code == 201:
@@ -111,7 +112,7 @@ class ConnectionHandler:
                 response_json = json.loads(response.text)
                 if "You do not have permission to perform this action." in response_json["detail"]:
                     logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
-
+            logging.info(f"Payload upload duration: {round(time.time() - payload_upload_time, 2)} seconds")
             return response
 
     def upload_payloads(self, payload_folder: str):
