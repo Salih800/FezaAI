@@ -18,7 +18,7 @@ from myutils.model_download import download_model
 from myutils.logger_setter import set_logger
 from myutils.ConnectionInfo import ConnectionInfo
 
-from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
+from sahi.model import YoloDetectionModel, Yolov5DetectionModel, Yolov7DetectionModel
 
 
 def run():
@@ -33,26 +33,31 @@ def run():
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
 
-    yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
-    uap_uai_model = get_model_info(models.yolov7_uap_uai)
+    yaya_arac_model = get_model_info(models.yolov5x6_yaya_arac)
+    uap_uai_model = get_model_info(models.yolov5s6_uap_uai)
 
     download_model(yaya_arac_model.gdrive_id, yaya_arac_model.path)
     download_model(uap_uai_model.gdrive_id, uap_uai_model.path)
 
-    # YOLOV5
+    if yaya_arac_model.which_yolo != uap_uai_model.which_yolo:
+        exception = "You can not load two different type model at the same time!"
+        logging.error(exception)
+        raise Exception(exception)
 
-    yaya_arac_detection_model = Yolov5DetectionModel(
+    yaya_arac_detection_model = YoloDetectionModel(
         model_path=yaya_arac_model.path,
         confidence_threshold=yaya_arac_model.confidence_threshold,
         image_size=yaya_arac_model.image_size,
-        model_name=yaya_arac_model.name
+        model_name=yaya_arac_model.name,
+        which_yolo=yaya_arac_model.which_yolo
     )
 
-    uap_uai_detection_model = Yolov5DetectionModel(
+    uap_uai_detection_model = YoloDetectionModel(
         model_path=uap_uai_model.path,
         confidence_threshold=uap_uai_model.confidence_threshold,
         image_size=uap_uai_model.image_size,
-        model_name=uap_uai_model.name
+        model_name=uap_uai_model.name,
+        which_yolo=uap_uai_model.which_yolo
     )
 
     using_models = yaya_arac_detection_model.model_name + "_" + uap_uai_detection_model.model_name
