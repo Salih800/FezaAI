@@ -41,6 +41,7 @@ def set_logger(team_name, add_file_handler=True, add_stream_handler=True):
     fmt = '%(asctime)s - %(levelname)s - %(message)s'
     if add_file_handler:
         file_handler = logging.FileHandler(log_filename)
+        file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(logging.Formatter(fmt))
         logger.addHandler(file_handler)
 
