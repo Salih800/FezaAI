@@ -4,8 +4,6 @@ import time
 from datetime import timedelta
 from pathlib import Path
 
-from decouple import config
-
 from src.connection_handler import ConnectionHandler
 from src.frame_predictions import FramePredictions
 from src.object_detection_model import ObjectDetectionModel
@@ -18,6 +16,7 @@ from src.our_models import get_model_info, MODELS
 
 from myutils.model_download import download_model
 from myutils.logger_setter import set_logger
+from myutils.ConnectionInfo import ConnectionInfo
 
 from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
 
@@ -25,20 +24,17 @@ from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
 def run():
     print("Started...")
     # Get configurations from .env file
-    config.search_path = "./config/"
-    team_name = config('TEAM_NAME')
-    password = config('PASSWORD')
-    evaluation_server_url = config("EVALUATION_SERVER_URL")
+    connection_info = ConnectionInfo()
 
     # Declare logging configuration.
     # configure_logger(team_name)
-    set_logger(team_name)
+    set_logger(connection_info.team_name)
 
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
 
-    yaya_arac_model = get_model_info(models.yolov5x6_yaya_arac)
-    uap_uai_model = get_model_info(models.yolov5s6_uap_uai)
+    yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
+    uap_uai_model = get_model_info(models.yolov7_uap_uai)
 
     download_model(yaya_arac_model.gdrive_id, yaya_arac_model.path)
     download_model(uap_uai_model.gdrive_id, uap_uai_model.path)
@@ -61,14 +57,16 @@ def run():
 
     using_models = yaya_arac_detection_model.model_name + "_" + uap_uai_detection_model.model_name
 
-    detection_model = ObjectDetectionModel(evaluation_server_url,
+    detection_model = ObjectDetectionModel(connection_info.evaluation_server_url,
                                            yaya_arac_model=yaya_arac_detection_model,
                                            yaya_arac_sliced=True,
                                            uap_uai_model=uap_uai_detection_model,
                                            uap_uai_sliced=False)
 
     # Connect to the evaluation server.
-    server = ConnectionHandler(evaluation_server_url, username=team_name, password=password)
+    server = ConnectionHandler(connection_info.evaluation_server_url,
+                               username=connection_info.team_name,
+                               password=connection_info.password)
 
     # Get all frames from current active session.
     frames_json = server.get_frames()
@@ -87,12 +85,13 @@ def run():
         predictions = FramePredictions(frame['url'], frame['image_url'], frame['video_name'])
 
         # Run detection model
-        predictions = detection_model.process(predictions, evaluation_server_url)
+        predictions = detection_model.process(predictions, connection_info.evaluation_server_url)
         # Send model predictions of this frame to the evaluation server
         while not prediction_sent:
             result = server.save_or_upload_prediction(predictions,
                                                       model_name=using_models,
-                                                      save_payload=True, upload_payload=True)
+                                                      save_payload=True,
+                                                      upload_payload=False)
             if result:
                 if result.status_code == 201:
                     prediction_sent = True
