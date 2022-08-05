@@ -1,5 +1,6 @@
 _*
 .idea
+.vscode
 *.pyc
 *__pycache__/
 images
