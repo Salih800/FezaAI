@@ -65,6 +65,53 @@ class ConnectionHandler:
 
         return self.frames
 
+    def upload_payload(self, payload):
+
+        files = []
+        headers = {
+            'Authorization': 'Token {}'.format(self.auth_token),
+            'Content-Type': 'application/json',
+        }
+
+        waiting_time_limit = 61
+        waiting_for_limit = False
+        waiting_start_time = 0
+        failed_count = 0
+
+        upload_start_time = time.time()
+
+        while True:
+
+            response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files)
+
+            if response.status_code == 201:
+                upload_end_time = round(time.time() - upload_start_time, 2)
+                logging.info(f"Payload uploaded successfully in {upload_end_time}")
+                return 1, 0, upload_end_time
+
+            elif response.status_code == 406:
+                upload_end_time = round(time.time() - upload_start_time, 2)
+                logging.info(f"Payload already uploaded in {upload_end_time}")
+                return 0, 1, upload_end_time
+
+            elif response.status_code == 403:
+                if not waiting_for_limit:
+                    waiting_for_limit = True
+                    waiting_start_time = time.time()
+                    logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
+                    logging.info("Waiting for limit...")
+                elif time.time() - waiting_start_time > waiting_time_limit:
+                    raise Exception("Waiting is taking too long!")
+                time.sleep(5)
+
+            else:
+                failed_count += 1
+                if failed_count >= 5:
+                    logging.error("Payload send failed 5 times. Ending the upload!")
+                    raise Exception("Payload send failed 5 times. Ending the upload!")
+                logging.warning("Payload send failed. {}\n\t{}".format(response.status_code, response.text))
+                time.sleep(3)
+
     def save_or_upload_prediction(self, prediction, model_name, upload_payload: bool, save_payload: bool):
         """
         Dikkat: Bir dakika içerisinde bir takım maksimum 80 frame için tahmin gönderebilecektir.
@@ -83,11 +130,6 @@ class ConnectionHandler:
         """
 
         payload = json.dumps(prediction.create_payload(self.base_url))
-        files = []
-        headers = {
-            'Authorization': 'Token {}'.format(self.auth_token),
-            'Content-Type': 'application/json',
-        }
 
         if save_payload:
             payloads_path = "./_payloads/" + prediction.video_name + "/" + model_name + "/"
@@ -101,19 +143,7 @@ class ConnectionHandler:
             logging.info(f"Payload file saved: {payload_filename}")
 
         if upload_payload:
-            payload_upload_time = time.time()
-            response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files)
-
-            if response.status_code == 201:
-                logging.info(f"Prediction uploaded successfully.")
-
-            else:
-                logging.warning("Prediction send failed. {}\n\t{}".format(response.status_code, response.text))
-                response_json = json.loads(response.text)
-                if "You do not have permission to perform this action." in response_json["detail"]:
-                    logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
-            logging.info(f"Payload upload duration: {round(time.time() - payload_upload_time, 2)} seconds")
-            return response
+            self.upload_payload(payload)
 
     def upload_payloads(self, payload_folder: str):
         if payload_folder.startswith('"'):
@@ -123,56 +153,24 @@ class ConnectionHandler:
 
         payload_list = glob.glob(payload_folder + "/*.json")
         total_payload_count = len(payload_list)
+
         logging.info(f"{total_payload_count} Found Total Payloads in '{payload_folder}'")
+
         uploaded_count = 0
-        failed_count = 0
         already_uploaded_count = 0
-        waiting_time_limit = 61
-        upload_start_time = time.time()
+        total_upload_time = 0
 
         for i, payload_file in enumerate(payload_list):
             payload = open(payload_file).read()
-            payload_uploaded = False
+
             logging.info(f"{i}/{total_payload_count} trying to upload: {payload_file}")
-            waiting_for_limit = False
-            waiting_start_time = 0
-            while not payload_uploaded:
-                files = []
-                headers = {
-                    'Authorization': 'Token {}'.format(self.auth_token),
-                    'Content-Type': 'application/json',
-                }
-                response = requests.request("POST", self.url_prediction, headers=headers, data=payload, files=files)
 
-                if response.status_code == 201:
-                    logging.info("Payload uploaded successfully.")
-                    uploaded_count += 1
-                    payload_uploaded = True
+            uploaded, already_uploaded, upload_time = self.upload_payload(payload)
 
-                elif response.status_code == 406:
-                    already_uploaded_count += 1
-                    logging.info("Payload already uploaded.")
-                    payload_uploaded = True
+            uploaded_count += uploaded
+            already_uploaded_count += already_uploaded
+            total_upload_time += upload_time
 
-                elif response.status_code == 403:
-                    if not waiting_for_limit:
-                        waiting_for_limit = True
-                        waiting_start_time = time.time()
-                        logging.warning("Limit exceeded. 80frames/min \n\t{}".format(response.text))
-                        logging.info("Waiting for limit...")
-                    elif time.time() - waiting_start_time > waiting_time_limit:
-                        raise Exception("Waiting is taking too long")
-                    time.sleep(5)
-
-                else:
-                    failed_count += 1
-                    if failed_count >= 5:
-                        logging.error("Payload send failed 5 times. Ending the upload!")
-                        exit("Payload send failed 5 times. Ending the upload!")
-                    logging.warning("Payload send failed. {}\n\t{}".format(response.status_code, response.text))
-                    time.sleep(3)
-
-        logging.info(f"{uploaded_count}/{total_payload_count} Payload Uploaded")
-        if already_uploaded_count > 0 or failed_count > 0:
-            logging.warning(f"{already_uploaded_count} payloads already uploaded and {failed_count} failed uploads!")
-        logging.info(f"Total time: {timedelta(seconds=time.time() - upload_start_time)}")
+        if already_uploaded_count > 0:
+            logging.warning(f"{already_uploaded_count} payloads already uploaded.")
+        logging.info(f"{uploaded_count}/{total_payload_count} Payload Uploaded in {total_upload_time}")
