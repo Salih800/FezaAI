@@ -1,73 +1,42 @@
 import glob
 import os
 import shutil
-import time
 from pathlib import Path
 import sys
 
-# print(os.getcwd())
 sys.path.append("./sahi")
 sys.path.append("./yolov7")
 sys.path.append("./yolov5")
-# print(sys.path)
-from sahi.utils.yolov5 import (
-    download_yolov5s6_model, download_yolov5l6_model
-)
 
 from myutils.model_download import download_model
-# from myutils
 
 # import required functions, classes
-from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel
-from sahi.utils.cv import read_image
-from sahi.utils.file import download_from_url
+from sahi.model import Yolov5DetectionModel, Yolov7DetectionModel, YoloDetectionModel
 from sahi.predict import get_prediction, get_sliced_prediction, predict
-# from IPython.display import Image
-from PIL import Image
+
 from src.our_models import get_model_info, MODELS
-import sys
-
-# sys.path.append("../")
-# print(sys.path)
-# exit()
-# yolov5_model_path = '../models/yolov5s6-b8-e300-i1920-vismix+teknofest.pt'
-# yolov5_model_path = "models/yolov5l6.pt"
-# download_yolov5s6_model(destination_path=yolov5_model_path)
-
-# download test images into demo_data folder
-# download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/small-vehicles1.jpeg',
-#                   'demo_data/small-vehicles1.jpeg')
-# download_from_url('https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png',
-#                   'demo_data/terrain2.png')
 
 models = MODELS()
-# yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
-model = get_model_info(models.yolov7_uap_uai)
+
+model = get_model_info(models.yolov5x6_yaya_arac)
 download_model(model.gdrive_id, model.path)
 
-# download_yolov5s6_model(destination_path=model.path)
-
-detection_model = Yolov7DetectionModel(
+detection_model = YoloDetectionModel(
     model_path=model.path,
     confidence_threshold=model.confidence_threshold,
     image_size=model.image_size,
+    which_yolo=model.which_yolo
 )
 
-# detection_model = Yolov7DetectionModel(
-#     model_path=model.path,
-#     confidence_threshold=model.conf,
-#     image_size=model.size
-# )
-
-images_path = "./uap-uai-empty-photos/"
+images_path = "./images/"
 label_save_path = "./labels/"
-detected_images_path = "./_detected_uap-uai_images/"
+detected_images_path = "./_detected_sahi_images/"
 # Path(images_path).mkdir(parents=True, exist_ok=True)
 Path(detected_images_path).mkdir(parents=True, exist_ok=True)
 if os.path.isdir(label_save_path):
     shutil.rmtree(label_save_path)
 os.makedirs(label_save_path)
-# print(detection_model.num_categories, detection_model.category_names)
+
 image_list = glob.glob(images_path + "*g")
 print(f"Total Pictures: {len(image_list)}")
 for i, image in enumerate(image_list):
@@ -82,45 +51,14 @@ for i, image in enumerate(image_list):
                           export_dir=detected_images_path)
 
     result.save_yolo_label(label_path=label_save_path + "normal/" + model.name + "/" + image_name + ".txt")
-    # exit()
 
     slice_512 = 512
     slice_256 = 256
     overlap_ratio = 0.2
 
-    # sliced_result_256 = get_sliced_prediction(
-    #     image,
-    #     detection_model,
-    #     slice_height=slice_256,
-    #     slice_width=slice_256,
-    #     overlap_width_ratio=overlap_ratio,
-    #     overlap_height_ratio=overlap_ratio,
-    # )
-    #
-    # print(f"{model.name} {slice_256}x{slice_256} - {overlap_ratio} sliced detection time: {sliced_result_256.durations_in_seconds}")
-    #
-    # sliced_result_256.export_visuals(
-    #     file_name=f"{image_name}-{model.name}-sliced-{slice_256}x{slice_256}-{overlap_ratio}-result",
-    #     export_dir=detected_images_path)
-
-    # sliced_result_512 = get_sliced_prediction(
-    #     image,
-    #     detection_model,
-    #     slice_height=slice_512,
-    #     slice_width=slice_512,
-    #     overlap_width_ratio=overlap_ratio,
-    #     overlap_height_ratio=overlap_ratio,
-    # )
-    #
-    # print(f"{model.name} {slice_512}x{slice_512} - {overlap_ratio} sliced detection time: {sliced_result_512.durations_in_seconds}")
-    #
-    # sliced_result_512.export_visuals(
-    #     file_name=f"{image_name}-{model.name}-sliced-{slice_512}x{slice_512}-{overlap_ratio}-result",
-    #     export_dir=detected_images_path)
-
     auto_sliced_result = get_sliced_prediction(
         image,
-        detection_model
+        detection_model,
     )
     file_name = f"{image_name}-{model.name}-sliced-auto-result"
     auto_sliced_result.export_visuals(
