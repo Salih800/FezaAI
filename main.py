@@ -68,9 +68,10 @@ def run():
 
     detection_model = ObjectDetectionModel(connection_info.evaluation_server_url,
                                            yaya_arac_model=yaya_arac_detection_model,
-                                           yaya_arac_sliced=True,
+                                           yaya_arac_sliced=False,
                                            uap_uai_model=uap_uai_detection_model,
-                                           uap_uai_sliced=False)
+                                           uap_uai_sliced=False,
+                                           download_again=False)
 
     # Connect to the evaluation server.
     server = ConnectionHandler(connection_info.evaluation_server_url,
@@ -96,24 +97,13 @@ def run():
         # Run detection model
         predictions = detection_model.process(predictions, connection_info.evaluation_server_url)
         # Send model predictions of this frame to the evaluation server
-        while not prediction_sent:
-            result = server.save_or_upload_prediction(predictions,
-                                                      model_name=using_models,
-                                                      save_payload=True,
-                                                      upload_payload=False)
-            if result:
-                if result.status_code == 201:
-                    prediction_sent = True
-                elif result.status_code == 406:
-                    prediction_sent = True
-                else:
-                    print("Sleeping 10 seconds")
-                    time.sleep(10)
-            else:
-                prediction_sent = True
-        prediction_sent = False
 
-        logging.info(f"Loop seconds: {round(time.time() - loop_start, 2)}")
+        server.save_or_upload_prediction(predictions,
+                                         model_name=using_models,
+                                         save_payload=True,
+                                         upload_payload=True)
+
+        logging.info(f"Loop duration: {round(time.time() - loop_start, 2)}")
 
     logging.info(f"{len(frames_json)} images processed in {timedelta(seconds=time.time() - detection_start_time)}")
 
