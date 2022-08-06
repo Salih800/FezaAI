@@ -42,7 +42,9 @@ class ObjectDetectionModel:
     def __init__(self, evaluation_server_url,
                  uap_uai_model: DetectionModel = None, uap_uai_sliced: bool = False,
                  yaya_arac_model: DetectionModel = None, yaya_arac_sliced: bool = False,
-                 view_image: bool = True, save_detected_image: bool = True, download_again=True):
+                 view_image: bool = True, save_detected_image: bool = True, download_again=True,
+                 vehicle_conf: float = 0, pedestrian_conf: float = 0,
+                 uap_conf: float = 0, uai_conf: float = 0):
         logging.info('Created Object Detection Model')
         self.evaulation_server = evaluation_server_url
 
@@ -64,6 +66,11 @@ class ObjectDetectionModel:
 
         self.yaya_arac_model.model_name += "-sahi" if self.yaya_arac_sliced else ""
         self.uap_uai_model.model_name += "-sahi" if self.uap_uai_sliced else ""
+
+        self.vehicle_conf = vehicle_conf
+        self.pedestrian_conf = pedestrian_conf
+        self.uap_conf = uap_conf
+        self.uai_conf = uai_conf
 
     @staticmethod
     def download_image(img_url, images_folder):
@@ -115,8 +122,10 @@ class ObjectDetectionModel:
 
         logging.info(f"Uap-Uai model duration: {uap_uai_result.durations_in_seconds}")
 
-        prediction.detected_objects = (yaya_arac_result.to_teknofest_predictions()
-                                       + uap_uai_result.to_teknofest_predictions())
+        prediction.detected_objects = (yaya_arac_result.to_teknofest_predictions(vehicle_conf=self.vehicle_conf,
+                                                                                 pedestrian_conf=self.pedestrian_conf)
+                                       + uap_uai_result.to_teknofest_predictions(uap_conf=self.uap_conf,
+                                                                                 uai_conf=self.uai_conf))
 
         if self.save_detected_image:
             saving_start_time = time.time()

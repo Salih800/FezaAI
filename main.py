@@ -71,7 +71,8 @@ def run():
                                            yaya_arac_sliced=False,
                                            uap_uai_model=uap_uai_detection_model,
                                            uap_uai_sliced=False,
-                                           download_again=False)
+                                           download_again=False,
+                                           vehicle_conf=0.8)
 
     # Connect to the evaluation server.
     server = ConnectionHandler(connection_info.evaluation_server_url,

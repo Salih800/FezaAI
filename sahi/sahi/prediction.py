@@ -223,21 +223,33 @@ class PredictionResult:
             )
         return fiftyone_detection_list
 
-    def to_teknofest_predictions(self) -> list[DetectedObject]:
+    def to_teknofest_predictions(self, vehicle_conf: float = 0, pedestrian_conf: float = 0,
+                                 uap_conf: float = 0, uai_conf: float = 0) -> list[DetectedObject]:
         detected_object_list: list[DetectedObject] = []
         for object_detection in self.object_prediction_list:
             if object_detection.category.name == "vehicle" or object_detection.category.name == "arac":
-                cls = 0
+                if object_detection.score.value >= vehicle_conf:
+                    cls = 0
+                else:
+                    continue
             elif object_detection.category.name == "yaya" or object_detection.category.name == "pedestrian":
-                cls = 1
+                if object_detection.score.value >= pedestrian_conf:
+                    cls = 1
+                else:
+                    continue
             elif object_detection.category.name == "uap" or object_detection.category.name == "uap_not":
-                cls = 2
+                if object_detection.score.value >= uap_conf:
+                    cls = 2
+                else:
+                    continue
             elif object_detection.category.name == "uai" or object_detection.category.name == "uai_not":
-                cls = 3
+                if object_detection.score.value >= uai_conf:
+                    cls = 3
+                else:
+                    continue
             else:
                 cls = None
 
-            # cls = object_detection.category.id
             top_left_x = object_detection.bbox.minx
             top_left_y = object_detection.bbox.miny
             bottom_right_x = object_detection.bbox.maxx
