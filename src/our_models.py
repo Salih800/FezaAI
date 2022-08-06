@@ -1,5 +1,21 @@
 class MODELS:
     def __init__(self):
+        self.yolov7_e6e_yaya_arac_v3 = {"name": "yolov7-e6e-viscrowd_v2",
+                                        "path": "models/yolov7-e6e-b8-e300-i960-viscrowd_v2.pt",
+                                        "size": 960,
+                                        "conf": 0.5,
+                                        "model_for": "yaya-arac",
+                                        "gdrive_id": "10huEpshl6Elmm9jK2PgQw3XlbD6bUi52",
+                                        "which_yolo": "yolov7"
+                                        }
+        self.yolov7_e6e_yaya_arac_v2 = {"name": "yolov7-e6e-viscrowd",
+                                     "path": "models/yolov7-e6e-b8-e300-i960-viscrowd.pt",
+                                     "size": 960,
+                                     "conf": 0.5,
+                                     "model_for": "yaya-arac",
+                                     "gdrive_id": "10c6TY3GUeEaS2wys0oQ2KRpHi6LO5UNT",
+                                     "which_yolo": "yolov7"
+                                     }
         self.yolov7_e6e_yaya_arac = {"name": "yolov7-e6e-vismix+teknofest",
                                      "path": "models/yolov7-e6e-b8-e300-i960-vismix+teknofest.pt",
                                      "size": 960,
@@ -16,6 +32,14 @@ class MODELS:
                                "gdrive_id": "1056zTMCVlDHqBIQztfa7biA5mzNIBH_i",
                                "which_yolo": "yolov7"
                                }
+        self.yolov7_uap_uai_v2 = {"name": "yolov7-teknofest+gta5+empty-uap-uai",
+                               "path": "models/yolov7-b32-e300-i640-teknofest+gta5+empty-uap-uai.pt",
+                               "size": 640,
+                               "conf": 0.80,
+                               "model_for": "uap-uai",
+                               "gdrive_id": "10b7_GWnhdxYDl4-lE0t4mJTQeM7g8IT8",
+                               "which_yolo": "yolov7"
+                               }
         self.yolov5s6_yaya_arac = {"name": "yolov5s6-vismix+teknofest",
                                    "path": "models/yolov5s6-b8-e300-i1920-vismix+teknofest.pt",
                                    "size": 1920,
@@ -29,6 +53,14 @@ class MODELS:
                                  "size": 1280,
                                  "conf": 0.80,
                                  "gdrive_id": "10E2vIRVhB6o4IiKV9fZQcQxpDjx5Dafj",
+                                 "model_for": "uap-uai",
+                                 "which_yolo": "yolov5"
+                                 }
+        self.yolov5s6_uap_uai_v2 = {"name": "yolov5s6-teknofest+gta5+empty-uap-uai",
+                                 "path": "models/yolov5s6-b32-e300-i640-teknofest+gta5+empty-uap-uai.pt",
+                                 "size": 640,
+                                 "conf": 0.80,
+                                 "gdrive_id": "10ZikX-MsiOUBmASDnWO2hH5-xp3E9AM1",
                                  "model_for": "uap-uai",
                                  "which_yolo": "yolov5"
                                  }

@@ -33,7 +33,7 @@ def run():
     # Teams can implement their codes within ObjectDetectionModel class. (OPTIONAL)
     models = MODELS()
 
-    yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac)
+    yaya_arac_model = get_model_info(models.yolov7_e6e_yaya_arac_v3)
     uap_uai_model = get_model_info(models.yolov7_uap_uai)
 
     download_model(yaya_arac_model.gdrive_id, yaya_arac_model.path)
@@ -86,7 +86,6 @@ def run():
     images_folder = "./_images/"
     Path(images_folder).mkdir(parents=True, exist_ok=True)
 
-    prediction_sent = False
     # Run object detection model frame by frame.
     detection_start_time = time.time()
     for i, frame in enumerate(frames_json):
